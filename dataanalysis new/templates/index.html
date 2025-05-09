@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Claim Prediction</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .result-container {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        .result-approved {
+            color: green;
+            font-weight: bold;
+        }
+        .result-denied {
+            color: red;
+            font-weight: bold;
+        }
+        .confidence {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .dashboard-container {
+            margin-top: 30px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .dashboard-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .powerbi-iframe {
+            width: 100%;
+            max-width: 1140px;
+            height: 541.25px;
+            border: none;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        @media (max-width: 768px) {
+            .powerbi-iframe {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Insurance Claim Prediction</h1>
+        
+        <div class="form-container">
+            <form id="predictionForm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="claimAmount">Claim Amount ($)</label>
+                            <input type="number" class="form-control" id="claimAmount" name="claimAmount" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="memberAge">Member Age</label>
+                            <input type="number" class="form-control" id="memberAge" name="memberAge" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="memberGender">Member Gender</label>
+                            <select class="form-control" id="memberGender" name="memberGender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="category">Claim Category</label>
+                            <select class="form-control" id="category" name="category" required>
+                                <option value="Medical">Medical</option>
+                                <option value="Dental">Dental</option>
+                                <option value="Vision">Vision</option>
+                                <option value="Pharmacy">Pharmacy</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="claimType">Claim Type</label>
+                            <select class="form-control" id="claimType" name="claimType" required>
+                                <option value="Inpatient">Inpatient</option>
+                                <option value="Outpatient">Outpatient</option>
+                                <option value="Emergency">Emergency</option>
+                                <option value="Routine">Routine</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="providerType">Provider Type</label>
+                            <select class="form-control" id="providerType" name="providerType" required>
+                                <option value="Hospital">Hospital</option>
+                                <option value="Clinic">Clinic</option>
+                                <option value="Physician">Physician</option>
+                                <option value="Specialist">Specialist</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Predict Claim Status</button>
+            </form>
+            
+            <div class="result-container" id="resultContainer" style="display: none;">
+                <h3>Prediction Result</h3>
+                <p id="resultText"></p>
+                <p id="confidenceText" class="confidence"></p>
+            </div>
+        </div>
+
+        <div class="dashboard-container">
+            <h2>Claims Analytics Dashboard</h2>
+            <iframe 
+                title="insurance data analysis"
+                class="powerbi-iframe"
+                src="{{ powerbi_url }}"
+                frameborder="0"
+                allowFullScreen="true"
+            ></iframe>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#predictionForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    claimAmount: $('#claimAmount').val(),
+                    memberAge: $('#memberAge').val(),
+                    memberGender: $('#memberGender').val(),
+                    category: $('#category').val(),
+                    claimType: $('#claimType').val(),
+                    providerType: $('#providerType').val()
+                };
+                
+                $.ajax({
+                    url: '/predict',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        $('#resultContainer').show();
+                        $('#resultText').text(response.prediction);
+                        $('#confidenceText').text(`Confidence: ${(response.confidence * 100).toFixed(2)}%`);
+                        
+                        // Update text color based on prediction
+                        if (response.prediction === 'Approved') {
+                            $('#resultText').removeClass('result-denied').addClass('result-approved');
+                        } else {
+                            $('#resultText').removeClass('result-approved').addClass('result-denied');
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#resultContainer').show();
+                        $('#resultText').text('Error: ' + (xhr.responseJSON?.error || 'Unknown error occurred'));
+                        $('#confidenceText').text('');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 
