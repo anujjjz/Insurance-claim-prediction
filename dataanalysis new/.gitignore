@@ -1,0 +1,57 @@
+# Model files
+medical_insurance_model.joblib
+*.pkl
+*.h5
+
+# Dataset files
+MedicalClaims.csv
+PatientInfo.csv
+ProviderInfo.csv
+MedicalProcedures.csv
+DiagnosisCodes.csv
+*.csv
+*.xlsx
+*.xls
+
+# Python virtual environment
+venv/
+env/
+ENV/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Environment variables
+.env
+.env.*
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Flask session files
+flask_session/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
